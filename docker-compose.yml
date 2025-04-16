@@ -1,20 +1,32 @@
-version: "3.1"
+version: "3.8"
+services:
+  postgres:
+    image: postgres:14
+    environment:
+      POSTGRES_DB: webstudio
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7
+
+  webstudio:
+    build:
+      context: .
+      dockerfile: ./apps/builder/Dockerfile
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/webstudio
+      REDIS_URL: redis://redis:6379
+      WEBSTUDIO_AUTH_SECRET: supersecretkey
+    ports:
+      - "8787:8787"
+    depends_on:
+      - postgres
+      - redis
 
 volumes:
-  db:
-
-services:
-  db:
-    image: postgres
-    # Uncomment to log all queries
-    command: ["postgres", "-c", "log_statement=all"]
-    restart: always
-    environment:
-      # postgresql://user:pass@localhost:5432/webstudio
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: webstudio
-      POSTGRES_USER: user
-    volumes:
-      - db:/var/lib/postgresql/data
-    ports:
-      - ${PGPORT:-5432}:5432
+  pgdata:
